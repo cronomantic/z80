@@ -107,9 +107,9 @@ static int run_test(
   long long diff = cyc_expected - z->cyc;
   printf("\n*** %lu instructions executed on %lu cycles"
          " (expected=%lu, diff=%lld)\n\n",
-      nb_instructions, z->cyc, cyc_expected, diff);
+      nb_instructions, z->t_cyc, cyc_expected, diff);
 
-  return cyc_expected != z->cyc;
+  return cyc_expected != z->t_cyc;
 }
 
 int main(void) {
