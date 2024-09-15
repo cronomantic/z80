@@ -54,8 +54,8 @@ static inline void wb(z80* const z, uint16_t addr, uint8_t val) {
 }
 
 static inline uint16_t rw(z80* const z, uint16_t addr) {
-  return (z->read_byte(z->userdata, addr + 1) << 8) |
-         z->read_byte(z->userdata, addr);
+  uint8_t data = z->read_byte(z->userdata, addr);
+  return (z->read_byte(z->userdata, addr + 1) << 8) | data;
 }
 
 static inline void ww(z80* const z, uint16_t addr, uint16_t val) {
@@ -148,12 +148,17 @@ static inline bool carry(int bit_no, uint16_t a, uint16_t b, bool cy) {
 
 // returns the parity of byte: 0 if number of 1 bits in `val` is odd, else 1
 static inline bool parity(uint8_t val) {
+  /*
   uint8_t nb_one_bits = 0;
   for (int i = 0; i < 8; i++) {
     nb_one_bits += ((val >> i) & 1);
   }
-
   return (nb_one_bits & 1) == 0;
+  */
+
+  val ^= val >> 4;
+  val &= 0xf;
+  return !((0x6996 >> val) & 1);
 }
 
 static void exec_opcode(z80* const z, uint8_t opcode);
@@ -1142,8 +1147,13 @@ void exec_opcode(z80* const z, uint8_t opcode) {
   case 0xF2: cond_jump(z, z->sf == 0); break; // jp p, **
   case 0xFA: cond_jump(z, z->sf == 1); break; // jp m, **
 
-  case 0x10: cond_jr(z, --z->b != 0); break; // djnz *
+  case 0x10:
+    cond_jr(z, --z->b != 0);
+    break; // djnz *
+  /*
   case 0x18: z->pc += (int8_t) nextb(z); break; // jr *
+  */
+  case 0x18: jr(z, nextb(z)); break; // jr *
   case 0x20: cond_jr(z, z->zf == 0); break; // jr nz, *
   case 0x28: cond_jr(z, z->zf == 1); break; // jr z, *
   case 0x30: cond_jr(z, z->cf == 0); break; // jr nc, *
