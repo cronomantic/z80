@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+
 typedef struct z80 z80;
 struct z80 {
   uint8_t (*read_byte)(void*, uint16_t);
@@ -13,8 +14,10 @@ struct z80 {
   void (*port_out)(z80*, uint8_t, uint8_t);
   void* userdata;
 
-  unsigned long cyc; // cycle count (t-states)
-
+#ifdef Z80_USE_CYC_GLOBAL_COUNTER
+  unsigned long t_cyc; // cycle count (t-states)
+#endif
+  uint8_t cyc; // cycle count (t-states) per instruction
   uint16_t pc, sp, ix, iy; // special purpose registers
   uint16_t mem_ptr; // "wz" register
   uint8_t a, b, c, d, e, h, l; // main registers
@@ -33,7 +36,7 @@ struct z80 {
 };
 
 void z80_init(z80* const z);
-void z80_step(z80* const z);
+uint8_t z80_step(z80* const z);
 void z80_debug_output(z80* const z);
 void z80_gen_nmi(z80* const z);
 void z80_gen_int(z80* const z, uint8_t data);
